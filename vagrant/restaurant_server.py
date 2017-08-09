@@ -33,6 +33,24 @@ class webserverHandler(BaseHTTPRequestHandler):
                 print(output)
                 return
 
+            elif self.path.endswith('/new'):
+                # Return success header
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
+                # Print out new restaurant form
+                output = ""
+                output += "<html><body>"
+                output += "<h1>Create a New Restaurant!</h1>"
+                output += "<form method='POST' enctype='multipart/form-data' action='/new'>"
+                output += "<input name='name' type='text'>"
+                output += "<input type='submit' value='Submit'"
+                output += "</form></body></html>"
+                self.wfile.write(output.encode())
+                return
+
+
             elif self.path.endswith('/edit'):
                 # Return success header
                 self.send_response(200)
@@ -46,14 +64,13 @@ class webserverHandler(BaseHTTPRequestHandler):
                 # Print out edit form
                 output = ""
                 output += "<html><body>"
-                output += "<h2>Edit Info for %s:</h2><ol>" % restaurant.name
+                output += "<h2>Edit Info for %s:</h2>" % restaurant.name
                 output += "<form method='POST' enctype='multipart/form-data' action='/%s/edit'>" % restaurant.id
                 output += "<input name='new_name' type='text' value='%s'>" % restaurant.name
                 output += "<input type='submit' value='Submit'>"
                 output += "</form>"
                 output += "</body></html>"
                 self.wfile.write(output.encode())
-                print(output)
                 return
 
 
@@ -79,10 +96,29 @@ class webserverHandler(BaseHTTPRequestHandler):
                     new_name = fields.get('new_name')
                 restaurant.name = new_name
 
-                # Save changes
+                # Save changes to db
                 session.add(restaurant)
                 session.commit()
                 print('Sucessfully edited restaurant name to {}'.format(restaurant.name))
+                return
+
+            elif self.path.endswith('/new'):
+                # Return redirect header
+                self.send_response(301)
+                self.send_header('Location', '/restaurants')
+                self.end_headers()
+
+                # Parse new restaurant's attributes
+                ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+                if ctype == 'multipart/form-data':
+                    fields = cgi.parse_multipart(self.rfile, pdict)
+                    restaurant_name = fields.get('name')
+
+                # Save changes to db
+                new_restaurant = Restaurant(name=restaurant_name)
+                session.add(new_restaurant)
+                session.commit()
+                print('Successfully added new restaurant with name: {}'.format(new_restaurant.name))
                 return
 
         except:
