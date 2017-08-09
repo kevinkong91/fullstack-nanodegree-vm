@@ -33,7 +33,28 @@ class webserverHandler(BaseHTTPRequestHandler):
                 print(output)
                 return
 
-            
+            elif self.path.endswith('/edit'):
+                # Return success header
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
+                # Parse out the restaurant id from path
+                restaurant_id = int(self.path[1:].split('/',1)[0])
+                restaurant = session.query(Restaurant).filter_by(id = restaurant_id).one()
+
+                # Print out edit form
+                output = ""
+                output += "<html><body>"
+                output += "<h2>Edit Info for %s:</h2><ol>" % restaurant.name
+                output += "<form method='POST' enctype='multipart/form-data' action='/%s/edit'>" % restaurant.id
+                output += "<input name='new_name' type='text' value='%s'>" % restaurant.name
+                output += "<input type='submit' value='Submit'>"
+                output += "</form>"
+                output += "</body></html>"
+                self.wfile.write(output.encode())
+                print(output)
+                return
 
 
         except IOError:
@@ -41,7 +62,28 @@ class webserverHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            return
+            if self.path.endswith('/edit'):
+                # Return redirect header
+                self.send_response(301)
+                self.send_header('Location', '/restaurants')
+                self.end_headers()
+
+                # Restaurant to edit
+                restaurant_id = int(self.path[1:].split('/',1)[0])
+                restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
+
+                # Parse restaurant id from form data
+                ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+                if ctype == 'multipart/form-data':
+                    fields = cgi.parse_multipart(self.rfile, pdict)
+                    new_name = fields.get('new_name')
+                restaurant.name = new_name
+
+                # Save changes
+                session.add(restaurant)
+                session.commit()
+                print('Sucessfully edited restaurant name to {}'.format(restaurant.name))
+                return
 
         except:
             pass
