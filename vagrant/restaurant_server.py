@@ -27,7 +27,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                 output += "<a href='/restaurants/new'>Add New></a><ol>"
                 for restaurant in all_restaurants:
                     output += "<li><h4>%s</h4>" % restaurant.name
-                    output += "<a href='%s/edit'><span>Edit</span></a>" % restaurant.id
+                    output += "<a href='/restaurants/%s/edit'><span>Edit</span></a>" % restaurant.id
                     output += "<span> </span><a href='/restaurants/%s/delete'><span>Delete</span></a></li>" % restaurant.id
                 output += "</ol></body></html>"
                 self.wfile.write(output.encode())
