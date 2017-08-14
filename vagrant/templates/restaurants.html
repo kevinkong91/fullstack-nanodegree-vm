@@ -1,0 +1,38 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+<h1>Yelp</h1>
+
+<!--MESSAGE FLASHING EXAMPLE -->
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul>
+{% for message in messages %}
+    <li><strong>{{message}}</strong></li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+<a href="{{ url_for('newRestaurant') }}">Create New Restaurant</a>
+<br/>
+<br/>
+<br/>
+
+{% for r in restaurants %}
+
+<div>
+    <a href="{{ url_for('showMenu', restaurant_id = r.id) }}"><h3>{{r.name}}</h3></a>
+    <a href="{{ url_for('editRestaurant', restaurant_id=r.id) }}">Edit</a><span> </span>
+    <a href="{{ url_for('deleteRestaurant', restaurant_id=r.id) }}">Delete</a>
+</div>
+</br></br>
+
+{% endfor %}
+</body>
+
+</html>
+        
